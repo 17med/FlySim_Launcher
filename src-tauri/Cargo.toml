@@ -1,0 +1,20 @@
+[package]
+name = "flysim-launcher"
+version = "0.1.0"
+description = "Installs, updates and launches FlySim from its GitHub releases"
+edition = "2021"
+
+[lib]
+name = "flysim_launcher_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "=2.7.2", features = [] }
+
+[dependencies]
+tauri = { version = "=2.12.2", features = [] }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+reqwest = { version = "=0.13.5", features = ["json"] }
+zip = { version = "=8.6.0", default-features = false, features = ["deflate"] }
+sha2 = "=0.11.0"

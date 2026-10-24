@@ -1,0 +1,64 @@
+name: CI
+
+# Every push and pull request to main: lint and test, then build the launcher on Linux and
+# Windows. The installers are kept as workflow artifacts (Actions run page > Artifacts) so any
+# commit can be tried without making a release. Releases come from release.yml on version tags.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  RUST_TOOLCHAIN: 1.99.1
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Install Tauri system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+      - name: Install Rust
+        run: rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --component clippy && rustup default "$RUST_TOOLCHAIN"
+      - name: Clippy
+        working-directory: src-tauri
+        run: cargo clippy --locked --all-targets -- -D warnings
+      - name: Rust tests
+        working-directory: src-tauri
+        run: cargo test --locked
+      - name: UI syntax check
+        run: node --check ui/app.js
+
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        # 22.04 rather than latest: the Linux build only runs on systems with this glibc or newer.
+        platform: [ubuntu-22.04, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+      - name: Install Tauri system libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+      - name: Install Rust
+        shell: bash
+        run: rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal && rustup default "$RUST_TOOLCHAIN"
+      - run: npm ci
+      # No tagName/releaseId, so this only builds and uploads workflow artifacts; it never
+      # touches Releases.
+      - uses: tauri-apps/tauri-action@v1.0.0
+        with:
+          uploadWorkflowArtifacts: true

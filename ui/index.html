@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlySim Launcher</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="logo.png" alt="" width="52" height="52">
+      <div><strong id="game-name">FlySim</strong><span>Launcher</span></div>
+    </div>
+
+    <nav class="links">
+      <button class="link" id="link-releases" type="button">Release page</button>
+      <button class="link" id="link-folder" type="button">Game folder</button>
+    </nav>
+
+    <div class="ring" id="ring">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="ring-track" cx="60" cy="60" r="52"></circle>
+        <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="52"></circle>
+      </svg>
+      <span id="ring-label">…</span>
+    </div>
+    <p class="status-line" id="status-line">Checking for updates…</p>
+
+    <dl class="versions">
+      <div><dt>Installed</dt><dd id="v-installed">—</dd></div>
+      <div><dt>Latest</dt><dd id="v-latest">—</dd></div>
+    </dl>
+
+    <div class="actions">
+      <button class="primary" id="primary" type="button" disabled>Checking…</button>
+      <button class="icon-btn" id="open-settings" type="button" title="Settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm7.4-2.5a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L15 3.5h-4l-.3 2.5a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.8 1.7 1l.3 2.5h4l.3-2.5c.6-.2 1.2-.6 1.7-1l2.4 1 2-3.4-2-1.6Z"/></svg>
+      </button>
+    </div>
+    <p class="meta" id="meta-line"></p>
+  </aside>
+
+  <main>
+    <div class="banner" id="banner" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 21h20L12 3Zm0 6v5m0 3v.5"/></svg>
+      <span id="banner-text"></span>
+    </div>
+
+    <section class="hero">
+      <div class="trailer" id="trailer"></div>
+      <article class="news">
+        <p class="eyebrow">Latest news</p>
+        <h2 id="news-title">—</h2>
+        <p class="badge" id="news-badge" hidden>Now available</p>
+        <time id="news-date"></time>
+        <div class="notes" id="news-body"></div>
+        <button class="ghost" id="news-more" type="button" hidden>More info</button>
+      </article>
+    </section>
+
+    <section class="history">
+      <h3>Version history</h3>
+      <div class="cards" id="history"></div>
+    </section>
+  </main>
+
+  <dialog id="settings">
+    <form method="dialog" class="settings-head">
+      <h3>Settings</h3>
+      <button class="icon-btn" type="submit" aria-label="Close">✕</button>
+    </form>
+    <label for="install-dir">Install folder</label>
+    <div class="row">
+      <input id="install-dir" type="text" spellcheck="false">
+      <button class="ghost" id="save-dir" type="button">Save</button>
+    </div>
+    <p class="hint">Change this before installing. An installed game must be uninstalled first.</p>
+    <div class="settings-actions">
+      <button class="ghost" id="check-updates" type="button">Check for updates</button>
+      <button class="ghost" id="repair" type="button">Repair</button>
+      <button class="ghost" id="open-folder" type="button">Open folder</button>
+      <button class="danger" id="uninstall" type="button">Uninstall</button>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>

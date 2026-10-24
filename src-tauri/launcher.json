@@ -1,0 +1,17 @@
+{
+  "game_name": "FlySim",
+  "github_api": "https://api.github.com",
+  "game_repo": "17med/FlySim_Game",
+  "status_url": "https://raw.githubusercontent.com/17med/FlySim_Launcher/main/status.json",
+  "trailer_youtube_id": "",
+  "platforms": {
+    "linux": {
+      "asset_suffix": "-StandaloneLinux64.zip",
+      "executables": ["FlySim.x86_64", "FlySim"]
+    },
+    "windows": {
+      "asset_suffix": "-StandaloneWindows64.zip",
+      "executables": ["FlySim.exe"]
+    }
+  }
+}
