@@ -14,7 +14,11 @@ pub struct PlatformConfig {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct LauncherConfig {
+    /// Folder name of the installed build. Kept separate from `display_name` so renaming the
+    /// game does not move the folder and orphan existing installs.
     pub game_name: String,
+    /// Name shown to players.
+    pub display_name: String,
     pub github_api: String,
     pub game_repo: String,
     pub status_url: String,

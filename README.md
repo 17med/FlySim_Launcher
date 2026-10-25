@@ -1,7 +1,7 @@
-# FlySim Launcher
+# Fly Simulator Launcher
 
-Desktop launcher (Tauri 2) that installs, updates and starts FlySim from the GitHub Releases of
-[`17med/FlySim_Game`](https://github.com/17med/FlySim_Game). Runs on Windows and Linux.
+Desktop launcher (Tauri 2) that installs, updates and starts Fly Simulator from the GitHub
+Releases of [`17med/FlySim_Game`](https://github.com/17med/FlySim_Game). Runs on Windows and Linux.
 
 ## How it decides what to show
 
@@ -39,6 +39,8 @@ Default install folder: the launcher's data folder (`~/.local/share/com.flysim.l
 
 | Key | Meaning |
 |---|---|
+| `game_name` | Folder name of the installed build (`FlySim/`); changing it orphans existing installs |
+| `display_name` | Name shown in the launcher |
 | `game_repo` | Repository whose releases are installed |
 | `status_url` | Raw URL of the maintenance banner file (see below) |
 | `trailer_youtube_id` | YouTube video id for the trailer (`""` shows a placeholder) |

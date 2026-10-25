@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "FlySim Launcher",
+  "productName": "Fly Simulator Launcher",
   "version": "0.1.0",
   "identifier": "com.flysim.launcher",
   "build": {
@@ -10,7 +10,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "FlySim Launcher",
+        "title": "Fly Simulator Launcher",
         "width": 1180,
         "height": 720,
         "minWidth": 960,

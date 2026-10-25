@@ -225,7 +225,7 @@ function toast(message, ok = false) {
 
 async function refreshInfo() {
   state.info = await invoke('get_info');
-  $('game-name').textContent = state.info.gameName;
+  $('game-name').textContent = state.info.displayName;
   $('install-dir').value = state.info.installDir;
   $('meta-line').textContent = `github.com/${state.info.gameRepo}`;
 }

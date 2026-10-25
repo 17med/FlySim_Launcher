@@ -58,6 +58,7 @@ impl Drop for BusyGuard<'_> {
 #[serde(rename_all = "camelCase")]
 pub struct LauncherInfo {
     game_name: String,
+    display_name: String,
     game_repo: String,
     trailer_youtube_id: String,
     install_dir: String,
@@ -78,6 +79,7 @@ pub fn get_info(state: State<'_, AppState>) -> LauncherInfo {
     let config = &state.config;
     LauncherInfo {
         game_name: config.game_name.clone(),
+        display_name: config.display_name.clone(),
         game_repo: config.game_repo.clone(),
         trailer_youtube_id: config.trailer_youtube_id.clone(),
         install_dir: dirs.root().display().to_string(),
