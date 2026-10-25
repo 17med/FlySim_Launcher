@@ -124,4 +124,6 @@ cd src-tauri && cargo test && cargo clippy --all-targets -- -D warnings
 - `git tag v0.2.0 && git push origin v0.2.0` runs `.github/workflows/release.yml`: the same
   checks, then signed Linux and Windows builds published as a GitHub Release together with
   `latest.json`. The tag must match `version` in `tauri.conf.json`, `Cargo.toml` and
-  `package.json`; `cargo test` checks the first two agree.
+  `package.json`: the release stops before building if the tag differs from `tauri.conf.json` or
+  `package.json`, and `cargo test` checks `Cargo.toml` against `tauri.conf.json`. Bump all three
+  (and `Cargo.lock`), commit, then tag.

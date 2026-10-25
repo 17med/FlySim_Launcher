@@ -19,6 +19,19 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7.0.1
+      # The build takes its version from tauri.conf.json, not from the tag. A tag pushed without a
+      # version bump publishes the old version under the new name and installed launchers never see
+      # an update: v0.3.1 shipped 0.2.0 that way. `cargo test` checks Cargo.toml against
+      # tauri.conf.json, so this only compares the tag with tauri.conf.json and package.json.
+      - name: Tag matches the app version
+        run: |
+          for file in src-tauri/tauri.conf.json package.json; do
+            version=$(jq -r .version "$file")
+            if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+              echo "::error file=$file::Tag $GITHUB_REF_NAME does not match version $version in $file. Bump the version, commit, then tag again."
+              exit 1
+            fi
+          done
       - name: Install Tauri system libraries
         run: |
           sudo apt-get update
