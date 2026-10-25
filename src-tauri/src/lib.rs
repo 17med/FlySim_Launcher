@@ -2,6 +2,7 @@ mod commands;
 mod config;
 mod github;
 mod install;
+mod launch;
 mod self_update;
 mod settings;
 
@@ -27,6 +28,7 @@ pub fn run() {
             commands::play,
             commands::uninstall,
             commands::set_install_dir,
+            commands::set_launch_options,
             commands::open_install_folder,
             commands::open_repo_page,
             self_update::check_launcher_update,

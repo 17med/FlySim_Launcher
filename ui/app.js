@@ -248,6 +248,7 @@ async function refreshInfo() {
   state.info = await invoke('get_info');
   $('game-name').textContent = state.info.displayName;
   $('install-dir').value = state.info.installDir;
+  $('launch-options').value = state.info.launchOptions;
   $('meta-line').textContent = `github.com/${state.info.gameRepo}`;
 }
 
@@ -411,6 +412,11 @@ function wireButtons() {
     if (await invokeOrToast('set_install_dir', { path: $('install-dir').value }, 'Install folder saved')) {
       await refreshInfo();
       render();
+    }
+  };
+  $('save-launch').onclick = async () => {
+    if (await invokeOrToast('set_launch_options', { options: $('launch-options').value }, 'Launch options saved')) {
+      await refreshInfo();
     }
   };
 }

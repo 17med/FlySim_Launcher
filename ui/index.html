@@ -86,6 +86,14 @@
       <button class="ghost" id="save-dir" type="button">Save</button>
     </div>
     <p class="hint">Change this before installing. An installed game must be uninstalled first.</p>
+    <label for="launch-options">Launch options</label>
+    <div class="row">
+      <input id="launch-options" type="text" spellcheck="false" placeholder="prime-run %command%">
+      <button class="ghost" id="save-launch" type="button">Save</button>
+    </div>
+    <p class="hint">Like Steam: <code>prime-run %command%</code> starts the game through prime-run.
+      Leading <code>KEY=value</code> words set environment variables; without <code>%command%</code>
+      the words are passed to the game. Leave empty to start the game directly.</p>
     <div class="settings-actions">
       <button class="ghost" id="check-updates" type="button">Check for updates</button>
       <button class="ghost" id="check-launcher" type="button">Check launcher updates</button>

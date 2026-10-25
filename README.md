@@ -19,7 +19,23 @@ Releases of [`17med/FlySim_Game`](https://github.com/17med/FlySim_Game). Runs on
 - The download for this OS is the release asset ending in `-StandaloneLinux64.zip` or
   `-StandaloneWindows64.zip`, the names the game's `release.yml` uploads.
 - Settings (gear): Check for updates, Repair (reinstall the installed version), Open folder,
-  Uninstall, and the install folder.
+  Uninstall, the install folder and the launch options.
+
+## Launch options
+
+Settings → **Launch options** works like Steam's, e.g. for a laptop with an NVIDIA GPU on Linux:
+
+| Launch options | Runs |
+|---|---|
+| *(empty)* | `FlySim` |
+| `prime-run %command%` | `prime-run FlySim` |
+| `__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia %command%` | `FlySim` with those variables set |
+| `gamemoderun prime-run %command% -screen-fullscreen 0` | `gamemoderun prime-run FlySim -screen-fullscreen 0` |
+| `-screen-fullscreen 0` | `FlySim -screen-fullscreen 0` (no `%command%`: words go to the game) |
+
+The text is split on spaces and never run through a shell, so quotes, `;`, `|` and `$(...)` have
+no special meaning and an argument cannot contain a space. Saved as `launch_options` in
+`settings.json` in the launcher's config folder.
 
 ## Install / update steps
 

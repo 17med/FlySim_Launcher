@@ -3,6 +3,7 @@
 use crate::config::LauncherConfig;
 use crate::github::{self, Asset, Release, Status};
 use crate::install::{self, GameDirs};
+use crate::launch;
 use crate::settings;
 use serde::Serialize;
 use std::path::{Path, PathBuf};
@@ -65,6 +66,7 @@ pub struct LauncherInfo {
     install_dir: String,
     installed_version: Option<String>,
     can_play: bool,
+    launch_options: String,
 }
 
 #[derive(Serialize, Clone)]
@@ -86,6 +88,7 @@ pub fn get_info(state: State<'_, AppState>) -> LauncherInfo {
         install_dir: dirs.root().display().to_string(),
         installed_version: install::read_installed(&dirs).map(|i| i.version),
         can_play: install::find_executable(&dirs, &config.platform().executables).is_some(),
+        launch_options: settings::load(&state.settings_path).launch_options,
     }
 }
 
@@ -169,11 +172,19 @@ pub fn play(state: State<'_, AppState>) -> Result<(), String> {
     let dirs = state.dirs();
     let exe = install::find_executable(&dirs, &state.config.platform().executables)
         .ok_or("The game is not installed. Press Install first.")?;
-    Command::new(&exe)
+    let options = settings::load(&state.settings_path).launch_options;
+    let launch = launch::build(&options, &exe);
+    Command::new(&launch.program)
+        .args(&launch.args)
+        .envs(launch.env.iter().map(|(key, value)| (key, value)))
         .current_dir(dirs.game())
         .spawn()
         .map(|_| ())
-        .map_err(|e| format!("Could not start {}: {e}", exe.display()))
+        .map_err(|e| {
+            let program = Path::new(&launch.program).display();
+            let hint = if options.is_empty() { "" } else { ". Check the launch options in Settings." };
+            format!("Could not start {program}: {e}{hint}")
+        })
 }
 
 #[tauri::command]
@@ -196,8 +207,14 @@ pub fn set_install_dir(state: State<'_, AppState>, path: String) -> Result<(), S
     if install::read_installed(&state.dirs()).is_some() {
         return Err("Uninstall the game before changing the install folder.".into());
     }
-    let new_settings = settings::Settings { install_dir: Some(path) };
-    settings::save(&state.settings_path, &new_settings)
+    settings::update(&state.settings_path, |s| s.install_dir = Some(path))
+}
+
+/// Saves Steam-style launch options such as `prime-run %command%`; see `launch.rs`.
+#[tauri::command]
+pub fn set_launch_options(state: State<'_, AppState>, options: String) -> Result<(), String> {
+    let options = options.trim().to_string();
+    settings::update(&state.settings_path, |s| s.launch_options = options)
 }
 
 #[tauri::command]
