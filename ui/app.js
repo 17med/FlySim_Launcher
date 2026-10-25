@@ -1,5 +1,7 @@
 // Launcher UI. All disk and network work happens in Rust (src-tauri/src/commands.rs); this file
 // only decides what to show and which command a button calls.
+// Kept as one file past the 400-line guideline on purpose: CI syntax-checks ui/app.js only, and the
+// launcher-update flow shares `state`, `render` and `toast` with the game flow.
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 
@@ -12,6 +14,8 @@ const state = {
   releasesError: null,
   selectedTag: null,
   task: null, // { label, percent } while installing / uninstalling
+  launcherUpdate: null, // { version, currentVersion, notes } when a newer launcher is published
+  launcherProgress: null, // percent while the launcher downloads its own update
 };
 
 // ---------- what the main button does ----------
@@ -25,6 +29,7 @@ function primaryAction() {
   const canPlay = state.info?.canPlay;
   const newest = latest();
   if (state.task) return { label: state.task.label, disabled: true };
+  if (state.launcherProgress !== null) return { label: 'Updating launcher…', disabled: true };
   if (!state.info) return { label: 'Checking…', disabled: true };
   if (newest && (!installed || !canPlay)) return { label: 'Install', run: () => runInstall(newest.tag_name) };
   if (newest && installed !== newest.tag_name) return { label: 'Update', run: () => runInstall(newest.tag_name) };
@@ -48,6 +53,7 @@ function statusText() {
 
 function render() {
   renderSidebar();
+  renderLauncherUpdate();
   renderNews();
   renderHistory();
 }
@@ -82,6 +88,21 @@ function renderRing() {
   $('ring').classList.toggle('ready', !state.task && percent === 100);
   $('ring-fill').style.strokeDashoffset = String(RING_LENGTH * (1 - percent / 100));
   $('ring-label').textContent = label;
+}
+
+function renderLauncherUpdate() {
+  const update = state.launcherUpdate;
+  $('launcher-update').hidden = !update;
+  if (!update) return;
+  const installing = state.launcherProgress !== null;
+  const percent = Math.round(state.launcherProgress || 0);
+  $('launcher-update-detail').textContent = installing
+    ? `Downloading ${percent}% — the launcher restarts when done`
+    : `v${update.currentVersion} → v${update.version}`;
+  $('launcher-update-bar').hidden = !installing;
+  $('launcher-update-fill').style.width = `${percent}%`;
+  $('launcher-update-install').textContent = installing ? 'Updating…' : 'Restart to update';
+  $('launcher-update-install').disabled = installing || Boolean(state.task);
 }
 
 function selectedRelease() {
@@ -271,6 +292,44 @@ async function runTask(label, command, args, successMessage) {
   }
 }
 
+async function checkLauncherUpdate(reportResult) {
+  try {
+    state.launcherUpdate = await invoke('check_launcher_update');
+    if (reportResult && !state.launcherUpdate) toast('The launcher is up to date', true);
+  } catch (error) {
+    // Fails open: the current launcher keeps working. Only a check the player asked for says why.
+    if (reportResult) toast(String(error));
+  }
+  render();
+}
+
+async function installLauncherUpdate() {
+  state.launcherProgress = 0;
+  render();
+  try {
+    await invoke('install_launcher_update'); // on success the launcher restarts and never returns
+  } catch (error) {
+    toast(String(error));
+  } finally {
+    state.launcherProgress = null;
+    render();
+  }
+}
+
+function onLauncherProgress({ payload }) {
+  if (state.launcherProgress === null) return;
+  state.launcherProgress = payload.total ? (payload.done / payload.total) * 100 : 0;
+  renderLauncherUpdate();
+}
+
+async function showLauncherVersion() {
+  try {
+    $('launcher-version').textContent = `Launcher v${await window.__TAURI__.app.getVersion()}`;
+  } catch {
+    // Fails open: the version line is informational only.
+  }
+}
+
 function runInstall(tag) {
   const verb = state.info?.installedVersion ? 'Updated' : 'Installed';
   return runTask('Starting…', 'install', { tag }, `${verb} to ${tag}`);
@@ -340,6 +399,8 @@ function wireButtons() {
   $('news-more').onclick = () => invokeOrToast('open_repo_page', { url: selectedRelease().html_url });
   $('open-settings').onclick = () => $('settings').showModal();
   $('check-updates').onclick = () => { $('settings').close(); checkForUpdates(); };
+  $('check-launcher').onclick = () => { $('settings').close(); checkLauncherUpdate(true); };
+  $('launcher-update-install').onclick = installLauncherUpdate;
   $('repair').onclick = () => {
     $('settings').close();
     runTask('Starting…', 'install', { tag: state.info.installedVersion }, 'Game repaired');
@@ -357,10 +418,13 @@ function wireButtons() {
 async function start() {
   wireButtons();
   await listen('install-progress', onProgress);
+  await listen('launcher-update-progress', onLauncherProgress);
   await refreshInfo();
   renderTrailer();
+  showLauncherVersion();
   render();
   await checkForUpdates();
+  await checkLauncherUpdate(false);
 }
 
 start().catch((error) => toast(`Launcher failed to start: ${error}`));

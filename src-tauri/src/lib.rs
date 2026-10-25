@@ -2,6 +2,7 @@ mod commands;
 mod config;
 mod github;
 mod install;
+mod self_update;
 mod settings;
 
 use tauri::Manager;
@@ -9,6 +10,8 @@ use tauri::Manager;
 pub fn run() {
     let config = config::LauncherConfig::load();
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(self_update::PendingUpdate::default())
         .setup(move |app| {
             let paths = app.path();
             let settings_path = paths.app_config_dir()?.join("settings.json");
@@ -26,6 +29,8 @@ pub fn run() {
             commands::set_install_dir,
             commands::open_install_folder,
             commands::open_repo_page,
+            self_update::check_launcher_update,
+            self_update::install_launcher_update,
         ])
         .run(tauri::generate_context!())
         .expect("FlySim Launcher failed to start");

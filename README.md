@@ -46,6 +46,38 @@ Default install folder: the launcher's data folder (`~/.local/share/com.flysim.l
 | `trailer_youtube_id` | YouTube video id for the trailer (`""` shows a placeholder) |
 | `platforms.<os>` | Asset suffix and executable names per OS |
 
+## Launcher self-update
+
+The launcher updates itself from the releases of this repository through Tauri's updater plugin
+(`src-tauri/src/self_update.rs`).
+
+- At startup it reads `https://github.com/17med/FlySim_Launcher/releases/latest/download/latest.json`
+  (set in `tauri.conf.json > plugins > updater > endpoints`). If that lists a newer version, a
+  "New launcher available" bar appears; **Restart to update** downloads it, checks its signature,
+  installs it and restarts. Settings → **Check launcher updates** runs the same check by hand.
+- Every download must be signed by the key whose public half is in
+  `tauri.conf.json > plugins > updater > pubkey`. Unsigned or wrongly signed files are refused.
+- Works for the Windows installers, the AppImage, and the `.deb` / `.rpm` packages (those ask for
+  the admin password, since they install system-wide).
+- The update is refused while a game install or uninstall is running, and the game buttons are
+  disabled while the launcher updates.
+- A failed check is silent at startup (the launcher keeps working at its current version) and shown
+  as a message when started from Settings.
+- Launchers older than v0.2.0 have no updater; those players must install v0.2.0 by hand once.
+
+### Signing key (one-time setup)
+
+The private key lives outside the repository, in `~/.tauri/flysim-launcher.key` on the machine
+that generated it. Never commit it. Add it to the repository secrets:
+
+```
+gh secret set TAURI_SIGNING_PRIVATE_KEY < ~/.tauri/flysim-launcher.key
+gh secret set TAURI_SIGNING_PRIVATE_KEY_PASSWORD --body ""
+```
+
+Keep a backup of the key. Lose it and installed launchers can never update again: you would have to
+ship a new public key and have every player reinstall by hand.
+
 ## Maintenance banner
 
 Edit `status.json` in this repository and push to `main`. The launcher shows it at startup:
@@ -65,7 +97,7 @@ Needs Node, Rust and the Tauri Linux libraries
 ```
 npm ci
 npm run dev          # run the launcher
-npm run build        # installers in src-tauri/target/release/bundle/
+npm run build -- --no-sign   # installers in src-tauri/target/release/bundle/, without updater signatures
 cd src-tauri && cargo test && cargo clippy --all-targets -- -D warnings
 ```
 
@@ -73,5 +105,7 @@ cd src-tauri && cargo test && cargo clippy --all-targets -- -D warnings
 
 - Every push / pull request to `main` runs `.github/workflows/ci.yml`: clippy, tests, then Linux
   and Windows builds. The installers are attached to the run under **Artifacts**.
-- `git tag v0.1.0 && git push origin v0.1.0` runs `.github/workflows/release.yml`: the same
-  checks, then Linux and Windows builds published as a GitHub Release.
+- `git tag v0.2.0 && git push origin v0.2.0` runs `.github/workflows/release.yml`: the same
+  checks, then signed Linux and Windows builds published as a GitHub Release together with
+  `latest.json`. The tag must match `version` in `tauri.conf.json`, `Cargo.toml` and
+  `package.json`; `cargo test` checks the first two agree.

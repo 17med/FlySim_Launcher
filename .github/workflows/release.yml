@@ -65,9 +65,14 @@ jobs:
         shell: bash
         run: rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal && rustup default "$RUST_TOOLCHAIN"
       - run: npm ci
+      # The signing key makes the build write a .sig next to each installer, and tauri-action then
+      # publishes latest.json, which installed launchers poll to update themselves. The public half
+      # is in tauri.conf.json > plugins > updater; losing the private key stops all self-updates.
       - uses: tauri-apps/tauri-action@v1.0.0
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
           releaseDraft: true

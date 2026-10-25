@@ -15,8 +15,9 @@ pub struct AppState {
     client: reqwest::Client,
     settings_path: PathBuf,
     default_root: PathBuf,
-    /// Set while an install or uninstall runs, so two can never touch the game folder at once.
-    busy: AtomicBool,
+    /// Set while an install, uninstall or launcher update runs, so two can never touch the game
+    /// folder at once and the launcher never restarts in the middle of an install.
+    pub(crate) busy: AtomicBool,
 }
 
 impl AppState {
@@ -38,10 +39,10 @@ impl AppState {
     }
 }
 
-struct BusyGuard<'a>(&'a AtomicBool);
+pub(crate) struct BusyGuard<'a>(&'a AtomicBool);
 
 impl<'a> BusyGuard<'a> {
-    fn acquire(flag: &'a AtomicBool) -> Result<Self, String> {
+    pub(crate) fn acquire(flag: &'a AtomicBool) -> Result<Self, String> {
         flag.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
             .map_err(|_| "Another install or uninstall is already running.".to_string())?;
         Ok(BusyGuard(flag))

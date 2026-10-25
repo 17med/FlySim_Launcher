@@ -47,6 +47,16 @@
       <span id="banner-text"></span>
     </div>
 
+    <div class="launcher-update" id="launcher-update" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-9m-4 4 4-4 4 4"/></svg>
+      <div class="launcher-update-text">
+        <strong>New launcher available</strong>
+        <span id="launcher-update-detail"></span>
+        <div class="bar" id="launcher-update-bar" hidden><div id="launcher-update-fill"></div></div>
+      </div>
+      <button class="primary small" id="launcher-update-install" type="button">Restart to update</button>
+    </div>
+
     <section class="hero">
       <div class="trailer" id="trailer"></div>
       <article class="news">
@@ -78,10 +88,12 @@
     <p class="hint">Change this before installing. An installed game must be uninstalled first.</p>
     <div class="settings-actions">
       <button class="ghost" id="check-updates" type="button">Check for updates</button>
+      <button class="ghost" id="check-launcher" type="button">Check launcher updates</button>
       <button class="ghost" id="repair" type="button">Repair</button>
       <button class="ghost" id="open-folder" type="button">Open folder</button>
       <button class="danger" id="uninstall" type="button">Uninstall</button>
     </div>
+    <p class="hint" id="launcher-version"></p>
   </dialog>
 
   <div class="toast" id="toast" role="status" hidden></div>
