@@ -90,8 +90,34 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseDraft: true
 
-  publish:
+  # Arch users install this file with pacman -U: the AUR takes no new accounts, so the package
+  # ships with the release. makepkg only runs on Arch, hence the container; it wraps the .deb
+  # built above, which the draft release does not serve publicly, so bump.sh hashes a local copy.
+  arch:
     needs: build
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Point the PKGBUILD at this release's .deb
+        run: |
+          gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --pattern '*_amd64.deb' --dir packaging/aur
+          packaging/aur/bump.sh "$GITHUB_REF_NAME" packaging/aur/*_amd64.deb
+      - name: Build the pacman package
+        # makepkg refuses to run as root. --nodeps: it only repackages, so the runtime
+        # dependencies need not be installed here.
+        run: |
+          docker run --rm -v "$PWD/packaging/aur:/src" archlinux:base-devel-20261011.0.609700 bash -euo pipefail -c '
+            useradd -m builder
+            cp -r /src /home/builder/pkg && chown -R builder /home/builder/pkg
+            su builder -c "cd ~/pkg && makepkg --nodeps"
+            cp /home/builder/pkg/*.pkg.tar.zst /src/'
+      - name: Attach it to the draft release
+        run: gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" packaging/aur/*.pkg.tar.zst
+
+  publish:
+    needs: [build, arch]
     runs-on: ubuntu-latest
     steps:
       - name: Publish release

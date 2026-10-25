@@ -38,14 +38,14 @@ struct Progress {
     total: Option<u64>,
 }
 
-/// Installed by the AUR package (packaging/aur/PKGBUILD). Its binary is the one from the .deb,
+/// Installed by the Arch package (packaging/aur/PKGBUILD). Its binary is the one from the .deb,
 /// whose updater runs `pkexec dpkg -i`: Arch has no dpkg, and pacman must own the files anyway.
 const PACKAGE_MANAGED_MARKER: &str = "/usr/share/flysim-launcher/package-managed";
 
 /// Fails closed: a launcher installed by a package manager never replaces its own files.
 fn refuse_if_package_managed(marker: &Path) -> Result<(), String> {
     if marker.exists() {
-        return Err("This launcher is updated by your package manager (e.g. yay -Syu).".into());
+        return Err("This launcher was installed with pacman: download the new .pkg.tar.zst from GitHub Releases and install it with sudo pacman -U.".into());
     }
     Ok(())
 }
@@ -148,6 +148,6 @@ mod tests {
         std::fs::write(&marker, "").unwrap();
         let refused = refuse_if_package_managed(&marker);
         let _ = std::fs::remove_file(&marker);
-        assert!(refused.unwrap_err().contains("package manager"));
+        assert!(refused.unwrap_err().contains("pacman -U"));
     }
 }
