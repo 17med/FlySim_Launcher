@@ -19,7 +19,8 @@ Releases of [`17med/FlySim_Game`](https://github.com/17med/FlySim_Game). Runs on
 - The download for this OS is the release asset ending in `-StandaloneLinux64.zip` or
   `-StandaloneWindows64.zip`, the names the game's `release.yml` uploads.
 - Settings (gear): Check for updates, Repair (reinstall the installed version), Open folder,
-  Uninstall, the install folder and the launch options.
+  Uninstall, the install folder and the launch options. **Devs** lists the people who built the
+  launcher, each linking to their GitHub profile.
 
 ## Launch options
 
@@ -60,6 +61,7 @@ Default install folder: the launcher's data folder (`~/.local/share/com.flysim.l
 | `game_repo` | Repository whose releases are installed |
 | `status_url` | Raw URL of the maintenance banner file (see below) |
 | `trailer_youtube_id` | YouTube video id for the trailer (`""` shows a placeholder) |
+| `developers` | `{ "name", "github" }` entries shown in Settings → Devs; only these GitHub profiles can be opened from it |
 | `platforms.<os>` | Asset suffix and executable names per OS |
 
 ## Launcher self-update

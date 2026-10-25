@@ -1,6 +1,6 @@
 //! The commands the UI can call. Each one is a thin step over `github` and `install`.
 
-use crate::config::LauncherConfig;
+use crate::config::{Developer, LauncherConfig};
 use crate::github::{self, Asset, Release, Status};
 use crate::install::{self, GameDirs};
 use crate::launch;
@@ -67,6 +67,7 @@ pub struct LauncherInfo {
     installed_version: Option<String>,
     can_play: bool,
     launch_options: String,
+    developers: Vec<Developer>,
 }
 
 #[derive(Serialize, Clone)]
@@ -89,6 +90,7 @@ pub fn get_info(state: State<'_, AppState>) -> LauncherInfo {
         installed_version: install::read_installed(&dirs).map(|i| i.version),
         can_play: install::find_executable(&dirs, &config.platform().executables).is_some(),
         launch_options: settings::load(&state.settings_path).launch_options,
+        developers: config.developers.clone(),
     }
 }
 
@@ -236,6 +238,21 @@ pub fn open_repo_page(state: State<'_, AppState>, url: String) -> Result<(), Str
     open_with_system(&url)
 }
 
+/// Opens the GitHub profile of a developer listed in `launcher.json`. The UI passes only the
+/// username and the URL is built here, so this cannot open anything outside that list.
+#[tauri::command]
+pub fn open_developer_page(state: State<'_, AppState>, github: String) -> Result<(), String> {
+    open_with_system(&developer_page(&state.config.developers, &github)?)
+}
+
+fn developer_page(developers: &[Developer], github: &str) -> Result<String, String> {
+    developers
+        .iter()
+        .find(|dev| dev.github == github)
+        .map(|dev| format!("https://github.com/{}", dev.github))
+        .ok_or_else(|| format!("Refusing to open the profile of {github}: not a listed developer."))
+}
+
 fn open_with_system(target: &str) -> Result<(), String> {
     let program = if cfg!(windows) { "explorer" } else { "xdg-open" };
     Command::new(program)
@@ -243,4 +260,25 @@ fn open_with_system(target: &str) -> Result<(), String> {
         .spawn()
         .map(|_| ())
         .map_err(|e| format!("Could not open {target}: {e}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn developers() -> Vec<Developer> {
+        vec![Developer { name: "Ahmed Dhia Ben Achour".into(), github: "17med".into() }]
+    }
+
+    #[test]
+    fn listed_developer_opens_their_github_profile() {
+        assert_eq!(developer_page(&developers(), "17med").unwrap(), "https://github.com/17med");
+    }
+
+    #[test]
+    fn unlisted_or_crafted_usernames_are_refused() {
+        for github in ["someone-else", "17med/../evil", "", "17MED"] {
+            assert!(developer_page(&developers(), github).is_err(), "{github} was accepted");
+        }
+    }
 }

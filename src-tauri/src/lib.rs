@@ -31,6 +31,7 @@ pub fn run() {
             commands::set_launch_options,
             commands::open_install_folder,
             commands::open_repo_page,
+            commands::open_developer_page,
             self_update::check_launcher_update,
             self_update::install_launcher_update,
         ])

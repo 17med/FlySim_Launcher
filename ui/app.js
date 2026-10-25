@@ -250,6 +250,21 @@ async function refreshInfo() {
   $('install-dir').value = state.info.installDir;
   $('launch-options').value = state.info.launchOptions;
   $('meta-line').textContent = `github.com/${state.info.gameRepo}`;
+  renderDevs();
+}
+
+function renderDevs() {
+  const list = $('devs-list');
+  list.replaceChildren();
+  for (const dev of state.info.developers) {
+    const item = document.createElement('li');
+    item.append(textNode('strong', '', dev.name));
+    const link = textNode('button', 'ghost', `@${dev.github}`);
+    link.type = 'button';
+    link.onclick = () => invokeOrToast('open_developer_page', { github: dev.github });
+    item.append(link);
+    list.append(item);
+  }
 }
 
 async function refreshReleases() {
@@ -399,6 +414,7 @@ function wireButtons() {
   $('open-folder').onclick = () => invokeOrToast('open_install_folder');
   $('news-more').onclick = () => invokeOrToast('open_repo_page', { url: selectedRelease().html_url });
   $('open-settings').onclick = () => $('settings').showModal();
+  $('open-devs').onclick = () => { $('settings').close(); $('devs').showModal(); };
   $('check-updates').onclick = () => { $('settings').close(); checkForUpdates(); };
   $('check-launcher').onclick = () => { $('settings').close(); checkLauncherUpdate(true); };
   $('launcher-update-install').onclick = installLauncherUpdate;

@@ -99,9 +99,19 @@
       <button class="ghost" id="check-launcher" type="button">Check launcher updates</button>
       <button class="ghost" id="repair" type="button">Repair</button>
       <button class="ghost" id="open-folder" type="button">Open folder</button>
+      <button class="ghost" id="open-devs" type="button">Devs</button>
       <button class="danger" id="uninstall" type="button">Uninstall</button>
     </div>
     <p class="hint" id="launcher-version"></p>
+  </dialog>
+
+  <dialog id="devs">
+    <form method="dialog" class="settings-head">
+      <h3>Devs</h3>
+      <button class="icon-btn" type="submit" aria-label="Close">✕</button>
+    </form>
+    <p class="hint">The people who built this launcher.</p>
+    <ul class="devs" id="devs-list"></ul>
   </dialog>
 
   <div class="toast" id="toast" role="status" hidden></div>

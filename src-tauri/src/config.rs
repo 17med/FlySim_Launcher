@@ -1,8 +1,16 @@
 //! The launcher's fixed settings. They are compiled in from `launcher.json`, the single place to
 //! change which repository, status file and trailer the launcher uses.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+/// A person credited in Settings → Devs.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Developer {
+    pub name: String,
+    /// GitHub username; the Devs dialog links to `https://github.com/<github>`.
+    pub github: String,
+}
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct PlatformConfig {
@@ -23,6 +31,7 @@ pub struct LauncherConfig {
     pub game_repo: String,
     pub status_url: String,
     pub trailer_youtube_id: String,
+    pub developers: Vec<Developer>,
     pub platforms: HashMap<String, PlatformConfig>,
 }
 
@@ -52,5 +61,20 @@ mod tests {
     fn bundled_config_parses_and_covers_this_os() {
         let config = LauncherConfig::load();
         assert!(!config.platform().executables.is_empty());
+    }
+
+    #[test]
+    fn bundled_developers_have_plain_github_usernames() {
+        // The username is pasted into a URL, so it must not carry `/`, `?` or other URL syntax.
+        let config = LauncherConfig::load();
+        assert!(!config.developers.is_empty());
+        for dev in &config.developers {
+            assert!(!dev.github.is_empty(), "{} has no GitHub username", dev.name);
+            assert!(
+                dev.github.chars().all(|c| c.is_ascii_alphanumeric() || c == '-'),
+                "{} is not a plain GitHub username",
+                dev.github
+            );
+        }
     }
 }
