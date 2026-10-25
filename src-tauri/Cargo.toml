@@ -1,6 +1,6 @@
 [package]
 name = "flysim-launcher"
-version = "0.2.0"
+version = "0.3.2"
 description = "Installs, updates and launches FlySim from its GitHub releases"
 edition = "2021"
 
