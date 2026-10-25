@@ -100,7 +100,7 @@ ship a new public key and have every player reinstall by hand.
 Every release carries a pacman package, `fly-simulator-launcher-bin-<version>-1-x86_64.pkg.tar.zst`:
 
 ```
-sudo pacman -U https://github.com/17med/FlySim_Launcher/releases/download/v0.3.3/fly-simulator-launcher-bin-0.3.3-1-x86_64.pkg.tar.zst
+sudo pacman -U https://github.com/17med/FlySim_Launcher/releases/download/v0.3.4/fly-simulator-launcher-bin-0.3.4-1-x86_64.pkg.tar.zst
 ```
 
 It is not in the AUR, which takes no new accounts, so nothing tells pacman about a new version:
