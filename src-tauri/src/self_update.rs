@@ -4,6 +4,7 @@
 
 use crate::commands::{AppState, BusyGuard};
 use serde::Serialize;
+use std::path::Path;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, State};
 use tauri_plugin_updater::{Update, UpdaterExt};
@@ -37,12 +38,25 @@ struct Progress {
     total: Option<u64>,
 }
 
+/// Installed by the AUR package (packaging/aur/PKGBUILD). Its binary is the one from the .deb,
+/// whose updater runs `pkexec dpkg -i`: Arch has no dpkg, and pacman must own the files anyway.
+const PACKAGE_MANAGED_MARKER: &str = "/usr/share/flysim-launcher/package-managed";
+
+/// Fails closed: a launcher installed by a package manager never replaces its own files.
+fn refuse_if_package_managed(marker: &Path) -> Result<(), String> {
+    if marker.exists() {
+        return Err("This launcher is updated by your package manager (e.g. yay -Syu).".into());
+    }
+    Ok(())
+}
+
 /// `None` when this launcher is the newest one published.
 #[tauri::command]
 pub async fn check_launcher_update(
     app: AppHandle,
     pending: State<'_, PendingUpdate>,
 ) -> Result<Option<LauncherUpdate>, String> {
+    refuse_if_package_managed(Path::new(PACKAGE_MANAGED_MARKER))?;
     let update = app
         .updater()
         .map_err(|e| format!("The launcher updater is not set up: {e}"))?
@@ -66,6 +80,7 @@ pub async fn install_launcher_update(
     state: State<'_, AppState>,
     pending: State<'_, PendingUpdate>,
 ) -> Result<(), String> {
+    refuse_if_package_managed(Path::new(PACKAGE_MANAGED_MARKER))?;
     // Fails closed: restarting in the middle of a game install would throw that install away.
     let _guard = BusyGuard::acquire(&state.busy)?;
     let update = pending
@@ -97,6 +112,7 @@ fn emit_progress(app: &AppHandle, done: u64, total: Option<u64>) {
 
 #[cfg(test)]
 mod tests {
+    use super::refuse_if_package_managed;
     use serde_json::Value;
 
     fn tauri_conf() -> Value {
@@ -123,5 +139,15 @@ mod tests {
     #[test]
     fn release_builds_create_updater_artifacts() {
         assert_eq!(tauri_conf()["bundle"]["createUpdaterArtifacts"], true);
+    }
+
+    #[test]
+    fn package_managed_install_refuses_to_update_itself() {
+        let marker = std::env::temp_dir().join(format!("flysim-launcher-marker-{}", std::process::id()));
+        assert!(refuse_if_package_managed(&marker).is_ok());
+        std::fs::write(&marker, "").unwrap();
+        let refused = refuse_if_package_managed(&marker);
+        let _ = std::fs::remove_file(&marker);
+        assert!(refused.unwrap_err().contains("package manager"));
     }
 }

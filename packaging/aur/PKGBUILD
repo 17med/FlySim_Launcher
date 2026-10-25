@@ -1,0 +1,33 @@
+# Maintainer: 17med
+#
+# Repackages the launcher's .deb from GitHub Releases. Point it at a new release with
+# ./bump.sh <version>; see "Arch Linux (AUR)" in the README for publishing.
+
+pkgname=fly-simulator-launcher-bin
+_name=flysim-launcher
+pkgver=0.3.2
+pkgrel=1
+pkgdesc="Installs, updates and launches Fly Simulator from its GitHub releases"
+arch=('x86_64')
+url="https://github.com/17med/FlySim_Launcher"
+license=('LicenseRef-FlySim')
+depends=('webkit2gtk-4.1' 'gtk3' 'hicolor-icon-theme')
+optdepends=('nvidia-prime: "prime-run %command%" launch option on NVIDIA laptops'
+            'gamemode: "gamemoderun %command%" launch option')
+provides=("$_name")
+conflicts=("$_name")
+# Ship the binary byte for byte as released (the checksum above), not a stripped copy of it.
+options=('!strip' '!debug')
+source=("$url/releases/download/v$pkgver/Fly.Simulator.Launcher_${pkgver}_amd64.deb")
+sha256sums=('a88b3910ea570d774e97f5cc8c5e400fd44701fe6dbe1f82350671870d426eec')
+
+package() {
+  # makepkg unpacks the .deb (an ar archive) into data.tar.* and control.tar.*.
+  bsdtar -xf data.tar.* -C "$pkgdir"
+  # The launcher refuses to update itself while this file exists (src-tauri/src/self_update.rs):
+  # the .deb's binary would otherwise try dpkg, and pacman owns these files.
+  install -Dm644 /dev/null "$pkgdir/usr/share/$_name/package-managed"
+  install -d "$pkgdir/usr/share/licenses/$pkgname"
+  echo "No license has been published for Fly Simulator Launcher yet. See $url." \
+    > "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

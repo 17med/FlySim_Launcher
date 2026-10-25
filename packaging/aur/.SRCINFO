@@ -1,0 +1,20 @@
+pkgbase = fly-simulator-launcher-bin
+	pkgdesc = Installs, updates and launches Fly Simulator from its GitHub releases
+	pkgver = 0.3.2
+	pkgrel = 1
+	url = https://github.com/17med/FlySim_Launcher
+	arch = x86_64
+	license = LicenseRef-FlySim
+	depends = webkit2gtk-4.1
+	depends = gtk3
+	depends = hicolor-icon-theme
+	optdepends = nvidia-prime: "prime-run %command%" launch option on NVIDIA laptops
+	optdepends = gamemode: "gamemoderun %command%" launch option
+	provides = flysim-launcher
+	conflicts = flysim-launcher
+	options = !strip
+	options = !debug
+	source = https://github.com/17med/FlySim_Launcher/releases/download/v0.3.2/Fly.Simulator.Launcher_0.3.2_amd64.deb
+	sha256sums = a88b3910ea570d774e97f5cc8c5e400fd44701fe6dbe1f82350671870d426eec
+
+pkgname = fly-simulator-launcher-bin

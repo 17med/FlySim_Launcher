@@ -80,6 +80,7 @@ The launcher updates itself from the releases of this repository through Tauri's
 - A failed check is silent at startup (the launcher keeps working at its current version) and shown
   as a message when started from Settings.
 - Launchers older than v0.2.0 have no updater; those players must install v0.2.0 by hand once.
+- The AUR package never updates itself: pacman / yay do (see [Arch Linux (AUR)](#arch-linux-aur)).
 
 ### Signing key (one-time setup)
 
@@ -93,6 +94,38 @@ gh secret set TAURI_SIGNING_PRIVATE_KEY_PASSWORD --body ""
 
 Keep a backup of the key. Lose it and installed launchers can never update again: you would have to
 ship a new public key and have every player reinstall by hand.
+
+## Arch Linux (AUR)
+
+Arch users install `fly-simulator-launcher-bin` from the AUR:
+
+```
+yay -S fly-simulator-launcher-bin      # update later with yay -Syu
+```
+
+`packaging/aur/PKGBUILD` repackages the release's `.deb` (checked against its sha256) and depends
+on `webkit2gtk-4.1` and `gtk3`; `nvidia-prime` and `gamemode` are optional, for the `prime-run` /
+`gamemoderun` launch options. The AppImage also runs on Arch and keeps updating itself.
+
+The package installs `/usr/share/flysim-launcher/package-managed`. While that file exists the
+launcher refuses to update itself, since the `.deb` binary would try `pkexec dpkg -i`, which Arch
+does not have; Settings → **Check launcher updates** says to update with the package manager.
+
+### Publishing a new version to the AUR
+
+After the GitHub release of a new version is published:
+
+```
+packaging/aur/bump.sh 0.3.3          # sets pkgver, pkgrel=1 and the sha256 in PKGBUILD and .SRCINFO
+git commit -am "AUR: 0.3.3"
+cp packaging/aur/PKGBUILD packaging/aur/.SRCINFO ~/aur/fly-simulator-launcher-bin/
+cd ~/aur/fly-simulator-launcher-bin && git commit -am "0.3.3" && git push
+```
+
+One-time setup: an account on aur.archlinux.org with your SSH public key added, then
+`git clone ssh://aur@aur.archlinux.org/fly-simulator-launcher-bin.git ~/aur/fly-simulator-launcher-bin`
+(an empty clone creates the package on the first push). Add an email to the `# Maintainer:` line
+of the PKGBUILD first; the AUR shows it publicly.
 
 ## Maintenance banner
 
@@ -127,3 +160,9 @@ cd src-tauri && cargo test && cargo clippy --all-targets -- -D warnings
   `package.json`: the release stops before building if the tag differs from `tauri.conf.json` or
   `package.json`, and `cargo test` checks `Cargo.toml` against `tauri.conf.json`. Bump all three
   (and `Cargo.lock`), commit, then tag.
+
+## Developers
+
+- Ahmed Dhia Ben Achour ([@17med](https://github.com/17med))
+- Abdelkarim Selmi ([@abdelkarimse](https://github.com/abdelkarimse))
+- Abdelhedi Rziga ([@rzig1](https://github.com/rzig1))
